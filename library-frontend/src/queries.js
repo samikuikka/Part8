@@ -19,6 +19,7 @@ export const ALL_BOOKS = gql`
           author {
             name
           }
+          genres
       }
   }
 `
@@ -58,6 +59,15 @@ export const GENRES = gql`
   query {
     allBooks {
       genres
+    }
+  }
+`
+
+export const GET_USER = gql`
+  query {
+    me {
+      favoriteGenre
+      username
     }
   }
 `
