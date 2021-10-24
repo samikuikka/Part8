@@ -1,16 +1,21 @@
 import React, { useState, useEffect } from 'react'
-import { useLazyQuery, useQuery } from '@apollo/client'
-import { ALL_BOOKS, GENRES } from '../queries'
+import { useLazyQuery, useQuery, useApolloClient } from '@apollo/client'
+import { ALL_BOOKS, GENRES, ALL_AUTHORS } from '../queries'
 
 const Books = (props) => {
-  //const result = useQuery(ALL_BOOKS)
   const [ getBooks, result ] = useLazyQuery(ALL_BOOKS)
   const [ genre, setGenre ] = useState(null)
-  const genreResult = useQuery(GENRES)
+  const genreResult = useQuery(ALL_BOOKS)
+  const client = useApolloClient()
 
   useEffect( () => {
-    getBooks({ variables: { genre: genre } })
+    //client.resetStore()
+    getBooks({
+       variables: { genre: genre } },
+       
+       )
   }, [genre])
+
 
   if (!props.show) {
     return null
