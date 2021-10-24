@@ -53,3 +53,11 @@ export const LOGIN = gql`
     }
   }
 `
+
+export const GENRES = gql`
+  query {
+    allBooks {
+      genres
+    }
+  }
+`
