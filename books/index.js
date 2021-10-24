@@ -100,11 +100,21 @@ const resolvers = {
       addBook: async (root, args) => {
           const book = new Book({ ...args })
 
+          //args validation
+          if(args.title.length < 4) {
+            throw new UserInputError("too short title")
+          }
+
           try {
             let result = await Author.findOne({ name: args.author})
 
             // result == null only if unknown author
             if(result === null) {
+
+              if(args.author.length < 3) {
+                throw new UserInputError("too short author name")
+              }
+
               const author = new Author({ name: args.author, bookCount: 1})
               author.save()
               result = author
@@ -124,7 +134,11 @@ const resolvers = {
       },
       editAuthor: async (root, args) => {
           const author = await Author.findOneAndUpdate({ name: args.name }, { born: args.setBornTo}, { new: true})
-            .catch( (error) => console.log(error))
+            .catch( (error) => {
+              throw new UserInputError(error.message, {
+                invalidArgs: args,
+              })
+            })
           return author
       }
   }
