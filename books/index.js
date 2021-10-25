@@ -23,6 +23,8 @@ mongoose.connect(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true,
     console.log('error connecting to MongoDB:', error.message)
 })
 
+mongoose.set('debug', true);
+
 const typeDefs = gql`
 
   type User {
