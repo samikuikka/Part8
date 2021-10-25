@@ -3,6 +3,8 @@ const { ApolloServer, gql, UserInputError, AuthenticationError } = require('apol
 const { v4 } = require('uuid')
 const mongoose = require('mongoose')
 const jwt = require('jsonwebtoken')
+const { PubSub } = require('graphql-subscriptions')
+const pubsub = new PubSub()
 
 const Author = require('./models/author')
 const Book = require('./models/book')
@@ -46,6 +48,10 @@ const typeDefs = gql`
     author: Author!
     genres: [String!]!
     id: ID!
+  }
+
+  type Subscription {
+    bookAdded: Book!
   }
 
   type Query {
@@ -157,6 +163,9 @@ const resolvers = {
             await book.save()
   
             const populatedBook = await Book.findById(book._id).populate('author')
+
+            pubsub.publish('BOOK_ADDED', { bookAdded: populatedBook })
+
             return populatedBook
           } catch(error) {
             throw new UserInputError(error.message, {
@@ -204,6 +213,11 @@ const resolvers = {
     
         return { value: jwt.sign(userForToken, JWT_SECRET) }
       },
+  },
+  Subscription: {
+    bookAdded: { 
+      subscribe: () => pubsub.asyncIterator(['BOOK_ADDED'])
+    }
   }
 }
 
@@ -222,6 +236,7 @@ const server = new ApolloServer({
   }
 })
 
-server.listen().then(({ url }) => {
+server.listen().then(({ url, subscriptionsUrl }) => {
   console.log(`Server ready at ${url}`)
+  console.log(`Subscriptions ready at ${subscriptionsUrl}`)
 })
