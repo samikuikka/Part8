@@ -5,16 +5,46 @@ import NewBook from './components/NewBook'
 import LoginForm from './components/LoginForm'
 import { useApolloClient, useSubscription } from '@apollo/client'
 import Recommendations from './components/Recommendations'
-import { BOOK_ADDED } from './queries'
+import { BOOK_ADDED, ALL_BOOKS } from './queries'
 
 const App = () => {
   const [ token, setToken ] = useState(null)
   const [page, setPage] = useState('authors')
   const client = useApolloClient()
 
+  const includedIn = (set, object) => 
+      set.map(p => p.title).includes(object.title)  
+
   useSubscription(BOOK_ADDED, {
     onSubscriptionData: ({subscriptionData}) => {
-      window.alert(`A new book ${subscriptionData.data.bookAdded.title} added`)
+      const addedBook = subscriptionData.data.bookAdded
+      window.alert(`A new book ${addedBook.title} added`)
+
+      const dataInStore = client.readQuery({ query: ALL_BOOKS })
+      if (!includedIn(dataInStore.allBooks, addedBook)) {
+        client.writeQuery({
+          query: ALL_BOOKS,
+          variables: { genre: null },
+          data: {
+            allBooks: dataInStore.allBooks.concat(addedBook)
+          }
+        })
+
+        addedBook.genres.forEach(genre => {
+          const x = client.readQuery({
+            query: ALL_BOOKS,
+            variables: { genre: genre }
+          })
+          if(x) {
+            client.writeQuery({
+              query: ALL_BOOKS,
+              variables: { genre: genre },
+              data: { allBooks: x.allBooks.concat(addedBook) }
+            })
+          }
+        })
+
+      }
     }
   })
 

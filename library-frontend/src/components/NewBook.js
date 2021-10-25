@@ -10,6 +10,7 @@ const NewBook = (props) => {
   const [genres, setGenres] = useState([])
 
   const [ createBook ] = useMutation(ADD_BOOK, {
+    refetchQueries: [ { query: ALL_AUTHORS }],
     update: (store, response) => {
       const dataInStore = store.readQuery({ query: ALL_BOOKS })
 
@@ -30,15 +31,16 @@ const NewBook = (props) => {
           }
         })
       })
-
-      store.writeQuery({
-        query: ALL_BOOKS,
-        variables: { genre: null },
-        data: {
-          ...dataInStore,
-          allBooks: [ ...dataInStore.allBooks, response.data.addBook ]
-        }
-      })
+      if(dataInStore) {
+        store.writeQuery({
+          query: ALL_BOOKS,
+          variables: { genre: null },
+          data: {
+            ...dataInStore,
+            allBooks: [ ...dataInStore.allBooks, response.data.addBook ]
+          }
+        })
+      }
       
     }
   })
